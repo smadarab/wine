@@ -1,0 +1,21 @@
+model: wine_data
+on: [push]
+jobs:
+    run:
+      runs_on: [ubuntu-latest]
+      container: docker://dvcorg/cml-py3:latest
+      steps: 
+        -uses: actions/checkout@v2
+        -name: cml-run
+         env: 
+            repo_token: ${{secrets.GITHUB_TOKEN}}
+         run: |
+            pip install -r requirements.txt
+            python train.py
+            echo "## model metrics ##" > report.md
+            cat metrics.txt >> report.md
+            echo "## publish data viz" > report.md
+            cml-publish feature_importance.png --md >> report.md
+            cml-publish residual.png --md >> report.md
+            cml-send-comment report.md
+            
